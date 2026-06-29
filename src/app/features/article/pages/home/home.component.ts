@@ -45,6 +45,7 @@ export default class HomeComponent implements OnInit {
     this.userService.isAuthenticated
       .pipe(
         tap((isAuthenticated) => {
+          this.isAuthenticated = isAuthenticated;
           if (isAuthenticated) {
             this.setListTo("feed");
           } else {
@@ -53,9 +54,7 @@ export default class HomeComponent implements OnInit {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(
-        (isAuthenticated: boolean) => (this.isAuthenticated = isAuthenticated),
-      );
+      .subscribe();
   }
 
   setListTo(type: string = "", filters: Object = {}): void {
