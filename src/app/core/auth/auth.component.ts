@@ -81,7 +81,7 @@ export default class AuthComponent implements OnInit {
           );
 
     observable.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => void this.router.navigate(["/"]),
+      next: () => void this.router.navigate(["/"], { onSameUrlNavigation: "reload" }),
       error: (err) => {
         this.errors = err;
         this.isSubmitting = false;

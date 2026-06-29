@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from "@angular/core";
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { TagsService } from "../../services/tags.service";
 import { ArticleListConfig } from "../../models/article-list-config.model";
@@ -39,12 +39,14 @@ export default class HomeComponent implements OnInit {
   constructor(
     private readonly router: Router,
     private readonly userService: UserService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.userService.isAuthenticated
       .pipe(
         tap((isAuthenticated) => {
+          this.isAuthenticated = isAuthenticated;
           if (isAuthenticated) {
             this.setListTo("feed");
           } else {
@@ -53,9 +55,7 @@ export default class HomeComponent implements OnInit {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(
-        (isAuthenticated: boolean) => (this.isAuthenticated = isAuthenticated),
-      );
+      .subscribe();
   }
 
   setListTo(type: string = "", filters: Object = {}): void {
@@ -67,5 +67,6 @@ export default class HomeComponent implements OnInit {
 
     // Otherwise, set the list object
     this.listConfig = { type: type, filters: filters };
+    this.cdr.detectChanges();
   }
 }
