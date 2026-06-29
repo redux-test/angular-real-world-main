@@ -11,7 +11,7 @@
       <div class="col-md-9">
         <div class="feed-toggle">
           <ul class="nav nav-pills outline-active">
-            <li class="nav-item">
+            <li class="nav-item" *ifAuthenticated="true">
               <a
                 class="nav-link"
                 [ngClass]="{ active: listConfig.type === 'feed' }"
