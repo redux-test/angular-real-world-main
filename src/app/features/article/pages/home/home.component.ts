@@ -59,13 +59,7 @@ export default class HomeComponent implements OnInit {
   }
 
   setListTo(type: string = "", filters: Object = {}): void {
-    // If feed is requested but user is not authenticated, redirect to login
-    if (type === "feed" && !this.isAuthenticated) {
-      void this.router.navigate(["/login"]);
-      return;
-    }
-
-    // Otherwise, set the list object
+    // Remove the authentication check - the subscription already handles this logic
     this.listConfig = { type: type, filters: filters };
   }
 }
