@@ -4,6 +4,7 @@ import { TagsService } from "../../services/tags.service";
 import { ArticleListConfig } from "../../models/article-list-config.model";
 import { AsyncPipe, NgClass, NgForOf } from "@angular/common";
 import { ArticleListComponent } from "../../components/article-list.component";
+import { tap } from "rxjs/operators";
 import { UserService } from "../../../../core/auth/services/user.service";
 import { RxLet } from "@rx-angular/template/let";
 import { IfAuthenticatedDirective } from "../../../../core/auth/if-authenticated.directive";
