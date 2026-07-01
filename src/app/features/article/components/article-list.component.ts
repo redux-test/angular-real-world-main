@@ -71,7 +71,11 @@ export class ArticleListComponent {
     this.runQuery();
   }
 
-  runQuery() {
+  /**
+   * Executes the article query based on current configuration
+   * Made public so parent components can trigger refresh when needed
+   */
+  public runQuery() {
     this.loading = LoadingState.LOADING;
     this.results = [];
 

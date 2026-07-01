@@ -73,4 +73,14 @@ export class UserService {
     this.jwtService.destroyToken();
     this.currentUserSubject.next(null);
   }
+
+  // Getter for current authentication state (synchronous)
+  get isCurrentlyAuthenticated(): boolean {
+    return !!this.currentUserSubject.value;
+  }
+
+  // Getter for current user (synchronous)
+  get currentUserValue(): User | null {
+    return this.currentUserSubject.value;
+  }
 }
