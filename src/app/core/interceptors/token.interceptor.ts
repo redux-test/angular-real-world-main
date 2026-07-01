@@ -3,12 +3,17 @@ import { HttpInterceptorFn } from "@angular/common/http";
 import { JwtService } from "../auth/services/jwt.service";
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = inject(JwtService).getToken();
+  const jwtService = inject(JwtService);
+  const token = jwtService.getToken();
 
-  const request = req.clone({
-    setHeaders: {
-      ...(token ? { Authorization: `Token ${token}` } : {}),
-    },
-  });
+  // Only add authorization header if token exists
+  const request = token 
+    ? req.clone({
+        setHeaders: {
+          Authorization: `Token ${token}`,
+        },
+      })
+    : req;
+    
   return next(request);
 };
