@@ -43,19 +43,15 @@ export default class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.userService.isAuthenticated
-      .pipe(
-        tap((isAuthenticated) => {
-          if (isAuthenticated) {
-            this.setListTo("feed");
-          } else {
-            this.setListTo("all");
-          }
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(
-        (isAuthenticated: boolean) => (this.isAuthenticated = isAuthenticated),
-      );
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((isAuthenticated: boolean) => {
+        this.isAuthenticated = isAuthenticated;
+        if (isAuthenticated) {
+          this.setListTo("feed");
+        } else {
+          this.setListTo("all");
+        }
+      });
   }
 
   setListTo(type: string = "", filters: Object = {}): void {
@@ -66,6 +62,6 @@ export default class HomeComponent implements OnInit {
     }
 
     // Otherwise, set the list object
-    this.listConfig = { type: type, filters: filters };
+    this.listConfig = { type: type, filters: { ...filters } };
   }
 }
