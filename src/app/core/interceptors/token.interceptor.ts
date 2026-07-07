@@ -3,7 +3,9 @@ import { HttpInterceptorFn } from "@angular/common/http";
 import { JwtService } from "../auth/services/jwt.service";
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = inject(JwtService).getToken();
+  const jwtService = inject(JwtService);
+  // Always get the latest token from the service to ensure updated tokens are used
+  const token = jwtService.getToken();
 
   const request = req.clone({
     setHeaders: {

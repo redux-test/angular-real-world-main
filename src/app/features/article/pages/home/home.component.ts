@@ -4,7 +4,7 @@ import { TagsService } from "../../services/tags.service";
 import { ArticleListConfig } from "../../models/article-list-config.model";
 import { AsyncPipe, NgClass, NgForOf } from "@angular/common";
 import { ArticleListComponent } from "../../components/article-list.component";
-import { tap } from "rxjs/operators";
+import { tap, combineLatest } from "rxjs/operators";
 import { UserService } from "../../../../core/auth/services/user.service";
 import { RxLet } from "@rx-angular/template/let";
 import { IfAuthenticatedDirective } from "../../../../core/auth/if-authenticated.directive";
@@ -42,9 +42,11 @@ export default class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Subscribe to initial authentication state
     this.userService.isAuthenticated
       .pipe(
         tap((isAuthenticated) => {
+          this.isAuthenticated = isAuthenticated;
           if (isAuthenticated) {
             this.setListTo("feed");
           } else {
@@ -53,9 +55,19 @@ export default class HomeComponent implements OnInit {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(
-        (isAuthenticated: boolean) => (this.isAuthenticated = isAuthenticated),
-      );
+      .subscribe();
+
+    // Subscribe to authentication state changes to refresh feed
+    this.userService.authStateChange$
+      .pipe(
+        tap((isAuthenticated) => {
+          this.isAuthenticated = isAuthenticated;
+          // Refresh the feed when authentication state changes
+          this.refreshFeed();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   setListTo(type: string = "", filters: Object = {}): void {
@@ -67,5 +79,14 @@ export default class HomeComponent implements OnInit {
 
     // Otherwise, set the list object
     this.listConfig = { type: type, filters: filters };
+  }
+
+  private refreshFeed(): void {
+    // Refresh the feed based on current authentication state
+    if (this.isAuthenticated) {
+      this.setListTo("feed");
+    } else {
+      this.setListTo("all");
+    }
   }
 }
