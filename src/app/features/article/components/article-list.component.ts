@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input } from "@angular/core";
+import { Component, DestroyRef, inject, Input, OnInit } from "@angular/core";
 import { ArticlesService } from "../services/articles.service";
 import { ArticleListConfig } from "../models/article-list-config.model";
 import { Article } from "../models/article.model";
@@ -6,6 +6,8 @@ import { ArticlePreviewComponent } from "./article-preview.component";
 import { NgClass, NgForOf, NgIf } from "@angular/common";
 import { LoadingState } from "../../../core/models/loading-state.model";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { filter } from "rxjs/operators";
+import { UserService } from "../../../core/auth/services/user.service";
 
 @Component({
   selector: "app-article-list",
@@ -45,14 +47,14 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
   `,
   standalone: true,
 })
-export class ArticleListComponent {
+export class ArticleListComponent implements OnInit {
   query!: ArticleListConfig;
   results: Article[] = [];
   currentPage = 1;
   totalPages: Array<number> = [];
   loading = LoadingState.NOT_LOADED;
   LoadingState = LoadingState;
-  destroyRef = inject(DestroyRef);
+  private destroyRef = inject(DestroyRef);
 
   @Input() limit!: number;
   @Input()
@@ -64,7 +66,23 @@ export class ArticleListComponent {
     }
   }
 
-  constructor(private articlesService: ArticlesService) {}
+  constructor(
+    private articlesService: ArticlesService,
+    private userService: UserService,
+  ) {}
+
+  ngOnInit() {
+    this.userService.isAuthenticated
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter(() => this.query?.type === "feed"),
+      )
+      .subscribe((isAuthenticated) => {
+        if (isAuthenticated) {
+          this.runQuery();
+        }
+      });
+  }
 
   setPageTo(pageNumber: number) {
     this.currentPage = pageNumber;
