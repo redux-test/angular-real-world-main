@@ -16,11 +16,23 @@ export class UserService {
 
   public isAuthenticated = this.currentUser.pipe(map((user) => !!user));
 
+  // Add authentication state change observable for components to react to login/logout
+  private authStateChangeSubject = new BehaviorSubject<boolean>(false);
+  public authStateChange$ = this.authStateChangeSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
+
   constructor(
     private readonly http: HttpClient,
     private readonly jwtService: JwtService,
     private readonly router: Router,
-  ) {}
+  ) {
+    // Initialize authentication state based on existing token
+    const token = this.jwtService.getToken();
+    if (token) {
+      this.authStateChangeSubject.next(true);
+    }
+  }
 
   login(credentials: {
     email: string;
@@ -67,10 +79,14 @@ export class UserService {
   setAuth(user: User): void {
     this.jwtService.saveToken(user.token);
     this.currentUserSubject.next(user);
+    // Emit authentication state change event
+    this.authStateChangeSubject.next(true);
   }
 
   purgeAuth(): void {
     this.jwtService.destroyToken();
     this.currentUserSubject.next(null);
+    // Emit authentication state change event
+    this.authStateChangeSubject.next(false);
   }
 }
