@@ -71,7 +71,7 @@ export class ArticleListComponent {
     this.runQuery();
   }
 
-  runQuery() {
+  public runQuery() {
     this.loading = LoadingState.LOADING;
     this.results = [];
 
