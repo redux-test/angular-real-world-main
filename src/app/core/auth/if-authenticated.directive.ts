@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { UserService } from "./services/user.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { startWith, map } from "rxjs/operators";
 
 @Directive({
   selector: "[ifAuthenticated]",
@@ -26,8 +27,12 @@ export class IfAuthenticatedDirective<T> implements OnInit {
   hasView = false;
 
   ngOnInit() {
-    this.userService.isAuthenticated
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.userService.currentUser
+      .pipe(
+        startWith(null),
+        map((user) => !!user),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((isAuthenticated: boolean) => {
         const authRequired = isAuthenticated && this.condition;
         const unauthRequired = !isAuthenticated && !this.condition;
