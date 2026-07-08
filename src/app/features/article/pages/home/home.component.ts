@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, ViewChild } from "@angular/core";
 import { Router } from "@angular/router";
 import { TagsService } from "../../services/tags.service";
 import { ArticleListConfig } from "../../models/article-list-config.model";
@@ -25,6 +25,8 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
   standalone: true,
 })
 export default class HomeComponent implements OnInit {
+  @ViewChild(ArticleListComponent) articleList?: ArticleListComponent;
+  
   isAuthenticated = false;
   listConfig: ArticleListConfig = {
     type: "all",
@@ -50,6 +52,10 @@ export default class HomeComponent implements OnInit {
           } else {
             this.setListTo("all");
           }
+          // Force the article list to re-query after config change
+          setTimeout(() => {
+            this.articleList?.runQuery();
+          }, 0);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
