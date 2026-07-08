@@ -4,11 +4,12 @@ import { TagsService } from "../../services/tags.service";
 import { ArticleListConfig } from "../../models/article-list-config.model";
 import { AsyncPipe, NgClass, NgForOf } from "@angular/common";
 import { ArticleListComponent } from "../../components/article-list.component";
-import { tap } from "rxjs/operators";
 import { UserService } from "../../../../core/auth/services/user.service";
 import { RxLet } from "@rx-angular/template/let";
 import { IfAuthenticatedDirective } from "../../../../core/auth/if-authenticated.directive";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { Observable } from "rxjs";
+import { tap } from "rxjs/operators";
 
 @Component({
   selector: "app-home-page",
@@ -25,7 +26,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
   standalone: true,
 })
 export default class HomeComponent implements OnInit {
-  isAuthenticated = false;
+  isAuthenticated$: Observable<boolean>;
   listConfig: ArticleListConfig = {
     type: "all",
     filters: {},
@@ -39,33 +40,24 @@ export default class HomeComponent implements OnInit {
   constructor(
     private readonly router: Router,
     private readonly userService: UserService,
-  ) {}
+  ) {
+    this.isAuthenticated$ = this.userService.isAuthenticated;
+  }
 
   ngOnInit(): void {
     this.userService.isAuthenticated
-      .pipe(
-        tap((isAuthenticated) => {
-          if (isAuthenticated) {
-            this.setListTo("feed");
-          } else {
-            this.setListTo("all");
-          }
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(
-        (isAuthenticated: boolean) => (this.isAuthenticated = isAuthenticated),
-      );
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((isAuthenticated: boolean) => {
+        if (isAuthenticated) {
+          this.setListTo("feed");
+        } else {
+          this.setListTo("all");
+        }
+      });
   }
 
   setListTo(type: string = "", filters: Object = {}): void {
-    // If feed is requested but user is not authenticated, redirect to login
-    if (type === "feed" && !this.isAuthenticated) {
-      void this.router.navigate(["/login"]);
-      return;
-    }
-
-    // Otherwise, set the list object
+    // Set the list object
     this.listConfig = { type: type, filters: filters };
   }
 }
