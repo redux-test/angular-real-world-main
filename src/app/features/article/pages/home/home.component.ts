@@ -44,17 +44,17 @@ export default class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.userService.isAuthenticated
       .pipe(
-        tap((isAuthenticated) => {
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(
+        (isAuthenticated: boolean) => {
+          this.isAuthenticated = isAuthenticated;
           if (isAuthenticated) {
             this.setListTo("feed");
           } else {
             this.setListTo("all");
           }
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(
-        (isAuthenticated: boolean) => (this.isAuthenticated = isAuthenticated),
+        },
       );
   }
 

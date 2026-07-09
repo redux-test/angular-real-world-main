@@ -84,15 +84,22 @@ export class ArticleListComponent {
     this.articlesService
       .query(this.query)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((data) => {
-        this.loading = LoadingState.LOADED;
-        this.results = data.articles;
+      .subscribe({
+        next: (data) => {
+          this.loading = LoadingState.LOADED;
+          this.results = data.articles;
 
-        // Used from http://www.jstips.co/en/create-range-0...n-easily-using-one-line/
-        this.totalPages = Array.from(
-          new Array(Math.ceil(data.articlesCount / this.limit)),
-          (val, index) => index + 1,
-        );
+          // Used from http://www.jstips.co/en/create-range-0...n-easily-using-one-line/
+          this.totalPages = Array.from(
+            new Array(Math.ceil(data.articlesCount / this.limit)),
+            (val, index) => index + 1,
+          );
+        },
+        error: (err) => {
+          this.loading = LoadingState.LOADED;
+          this.results = [];
+          console.error("Error loading articles:", err);
+        },
       });
   }
 }
