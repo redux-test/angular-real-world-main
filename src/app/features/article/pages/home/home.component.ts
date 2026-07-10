@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, ViewChild } from "@angular/core";
 import { Router } from "@angular/router";
 import { TagsService } from "../../services/tags.service";
 import { ArticleListConfig } from "../../models/article-list-config.model";
@@ -36,12 +36,15 @@ export default class HomeComponent implements OnInit {
   tagsLoaded = false;
   destroyRef = inject(DestroyRef);
 
+  @ViewChild('articleList') articleListComponent!: ArticleListComponent;
+
   constructor(
     private readonly router: Router,
     private readonly userService: UserService,
   ) {}
 
   ngOnInit(): void {
+    // Subscribe to initial authentication state
     this.userService.isAuthenticated
       .pipe(
         tap((isAuthenticated) => {
@@ -56,6 +59,14 @@ export default class HomeComponent implements OnInit {
       .subscribe(
         (isAuthenticated: boolean) => (this.isAuthenticated = isAuthenticated),
       );
+
+    // Subscribe to authentication state changes to refresh feed
+    this.userService.authStateChange$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((isAuthenticated: boolean) => {
+        this.isAuthenticated = isAuthenticated;
+        this.refreshFeed();
+      });
   }
 
   setListTo(type: string = "", filters: Object = {}): void {
@@ -67,5 +78,21 @@ export default class HomeComponent implements OnInit {
 
     // Otherwise, set the list object
     this.listConfig = { type: type, filters: filters };
+  }
+
+  /**
+   * Refresh the article feed based on current authentication state
+   */
+  refreshFeed(): void {
+    if (this.isAuthenticated) {
+      this.setListTo("feed");
+    } else {
+      this.setListTo("all");
+    }
+    
+    // Force refresh of the article list component if it exists
+    if (this.articleListComponent) {
+      this.articleListComponent.runQuery();
+    }
   }
 }
