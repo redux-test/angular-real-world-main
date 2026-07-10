@@ -11,6 +11,7 @@ import { ListErrorsComponent } from "../../shared/components/list-errors.compone
 import { Errors } from "../models/errors.model";
 import { UserService } from "./services/user.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { switchMap, filter, take } from "rxjs/operators";
 
 interface AuthForm {
   email: FormControl<string>;
@@ -80,7 +81,13 @@ export default class AuthComponent implements OnInit {
             },
           );
 
-    observable.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    observable.pipe(
+      switchMap(() => this.userService.currentUser.pipe(
+        filter(user => user !== null),
+        take(1)
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => void this.router.navigate(["/"]),
       error: (err) => {
         this.errors = err;

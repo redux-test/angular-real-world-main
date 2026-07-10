@@ -50,7 +50,13 @@ export class UserService {
     return this.http.get<{ user: User }>("/user").pipe(
       tap({
         next: ({ user }) => this.setAuth(user),
-        error: () => this.purgeAuth(),
+        error: (err) => {
+          // Only purge auth on genuine authentication failures
+          // Don't purge on transient network errors during initialization
+          if (err.status === 401 || err.status === 403) {
+            this.purgeAuth();
+          }
+        },
       }),
       shareReplay(1),
     );
