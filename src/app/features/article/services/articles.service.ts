@@ -1,12 +1,16 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { Observable, BehaviorSubject } from "rxjs";
+import { map, tap } from "rxjs/operators";
 import { ArticleListConfig } from "../models/article-list-config.model";
 import { Article } from "../models/article.model";
 
 @Injectable({ providedIn: "root" })
 export class ArticlesService {
+  // Add a subject to trigger feed refresh
+  private refreshFeedSubject = new BehaviorSubject<boolean>(false);
+  public refreshFeed$ = this.refreshFeedSubject.asObservable();
+
   constructor(private readonly http: HttpClient) {}
 
   query(
@@ -58,5 +62,25 @@ export class ArticlesService {
 
   unfavorite(slug: string): Observable<void> {
     return this.http.delete<void>(`/articles/${slug}/favorite`);
+  }
+
+  /**
+   * Trigger a refresh of the article feed
+   * This method can be called by components to refresh feed data
+   */
+  refreshFeedData(): void {
+    this.refreshFeedSubject.next(true);
+  }
+
+  /**
+   * Get fresh feed data for authenticated users
+   */
+  getFreshFeed(config: ArticleListConfig): Observable<{ articles: Article[]; articlesCount: number }> {
+    return this.query(config).pipe(
+      tap(() => {
+        // Reset the refresh trigger after successful fetch
+        this.refreshFeedSubject.next(false);
+      })
+    );
   }
 }

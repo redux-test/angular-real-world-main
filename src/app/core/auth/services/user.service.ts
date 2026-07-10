@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Observable, BehaviorSubject } from "rxjs";
+import { Observable, BehaviorSubject, Subject } from "rxjs";
 
 import { JwtService } from "./jwt.service";
 import { map, distinctUntilChanged, tap, shareReplay } from "rxjs/operators";
@@ -15,6 +15,10 @@ export class UserService {
     .pipe(distinctUntilChanged());
 
   public isAuthenticated = this.currentUser.pipe(map((user) => !!user));
+
+  // Add authentication state change event emitter
+  private authStateChangeSubject = new Subject<boolean>();
+  public authStateChange$ = this.authStateChangeSubject.asObservable();
 
   constructor(
     private readonly http: HttpClient,
@@ -67,10 +71,14 @@ export class UserService {
   setAuth(user: User): void {
     this.jwtService.saveToken(user.token);
     this.currentUserSubject.next(user);
+    // Emit authentication state change event
+    this.authStateChangeSubject.next(true);
   }
 
   purgeAuth(): void {
     this.jwtService.destroyToken();
     this.currentUserSubject.next(null);
+    // Emit authentication state change event
+    this.authStateChangeSubject.next(false);
   }
 }
