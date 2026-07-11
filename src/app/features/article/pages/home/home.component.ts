@@ -44,7 +44,11 @@ export default class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.userService.isAuthenticated
       .pipe(
-        tap((isAuthenticated) => {
+        tap((isAuthenticated: boolean) => {
+          // Update the local property FIRST to avoid race condition
+          this.isAuthenticated = isAuthenticated;
+          
+          // Now call setListTo with synchronized state
           if (isAuthenticated) {
             this.setListTo("feed");
           } else {
@@ -53,9 +57,7 @@ export default class HomeComponent implements OnInit {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(
-        (isAuthenticated: boolean) => (this.isAuthenticated = isAuthenticated),
-      );
+      .subscribe();  // No need for subscribe callback anymore
   }
 
   setListTo(type: string = "", filters: Object = {}): void {
